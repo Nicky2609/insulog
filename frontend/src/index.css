@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  /* A faint permanent blueprint-grid wash on every page, not just the hero,
+     so the whole app (including the internal panel) reads as one engineered
+     surface instead of a flat, empty admin background. */
+  background-image: linear-gradient(rgba(10, 61, 115, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 61, 115, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment: fixed;
+}
+
+/* Signature element: an architectural "dimension line" divider, like the
+   measurement lines used on blueprints, instead of a plain hairline. */
+.dimension-line {
+  position: relative;
+  height: 1px;
+  background: rgba(7, 27, 51, 0.16);
+  margin: 2rem 0;
+}
+
+.dimension-line::before,
+.dimension-line::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 1px;
+  height: 9px;
+  background: rgba(7, 27, 51, 0.3);
+}
+
+.dimension-line::before {
+  left: 0;
+}
+
+.dimension-line::after {
+  right: 0;
+}
+
+.blueprint-grid {
+  background-image: linear-gradient(rgba(14, 165, 196, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 196, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Same blueprint grid, tuned for dark navy backgrounds (hero, sidebar, CTA bands). */
+.blueprint-grid-dark {
+  background-image: linear-gradient(rgba(93, 203, 232, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(93, 203, 232, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Shared "panel card" look used across the internal dashboard: a plain
+   white surface reads flat against the new textured background, so every
+   card gets a real shadow and a slightly larger radius. */
+.panel-card {
+  background: #ffffff;
+  border-radius: 0.875rem;
+  border: 1px solid rgba(7, 27, 51, 0.07);
+  box-shadow: 0 1px 2px rgba(7, 27, 51, 0.04), 0 8px 24px -14px rgba(7, 27, 51, 0.22);
+}
+
+/* Focus visibility for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #0ea5c4;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(7, 27, 51, 0.2);
+  border-radius: 4px;
+}
