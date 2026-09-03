@@ -31,7 +31,7 @@ export default function DashboardLayout() {
       {/* Mobile top bar: only visible below lg, holds the hamburger toggle */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-steel-950 px-4 py-3">
         <div className="bg-white rounded-lg p-1.5 inline-block">
-          <img src="/insulog-logo.jpg" alt="Insulog S.A.S." className="h-6 w-auto rounded-sm" />
+          <img src="/insulog-logo.png" alt="Insulog S.A.S." className="h-6 w-auto rounded-sm" />
         </div>
         <button
           type="button"
@@ -64,7 +64,7 @@ export default function DashboardLayout() {
         <div className="relative flex items-start justify-between px-6 py-6 border-b border-white/10">
           <div>
             <div className="bg-white rounded-lg p-2 inline-block">
-              <img src="/insulog-logo.jpg" alt="Insulog S.A.S." className="h-8 w-auto rounded-sm" />
+              <img src="/insulog-logo.png" alt="Insulog S.A.S." className="h-8 w-auto rounded-sm" />
             </div>
             <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-blueprint-bright/70 mt-3">
               Panel interno

@@ -8,7 +8,7 @@ export default function PublicHeader() {
     <header className="border-b border-steel-800/10 bg-paper/90 backdrop-blur sticky top-0 z-30">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center" onClick={() => setMenuOpen(false)}>
-          <img src="/insulog-logo.jpg" alt="Insulog S.A.S." className="h-11 w-auto" />
+          <img src="/insulog-logo.png" alt="Insulog S.A.S." className="h-11 w-auto" />
         </Link>
 
         {/* Desktop nav - unchanged */}
