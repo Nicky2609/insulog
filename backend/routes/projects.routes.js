@@ -6,6 +6,18 @@ import { createUploader, uploadToCloudinary } from '../utils/fileStorage.js';
 const router = Router();
 const uploadImage = createUploader();
 
+// Fields a client is allowed to set on a project. Anything else in req.body
+// (e.g. an attempt to set created_by) is dropped.
+const WRITABLE_FIELDS = ['name', 'client_name', 'location', 'status', 'start_date', 'end_date', 'description'];
+
+function pickWritableFields(body) {
+  const payload = {};
+  for (const field of WRITABLE_FIELDS) {
+    if (body[field] !== undefined) payload[field] = body[field];
+  }
+  return payload;
+}
+
 router.use(requireAuth, requireRole('admin', 'engineer'));
 
 function serializeProject(doc) {
@@ -38,7 +50,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/projects
 router.post('/', async (req, res, next) => {
   try {
-    const doc = await Project.create({ ...req.body, created_by: req.user.id });
+    const doc = await Project.create({ ...pickWritableFields(req.body), created_by: req.user.id });
     res.status(201).json({ project: serializeProject(doc) });
   } catch (err) {
     next(err);
@@ -48,7 +60,7 @@ router.post('/', async (req, res, next) => {
 // PUT /api/projects/:id
 router.put('/:id', async (req, res, next) => {
   try {
-    const doc = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const doc = await Project.findByIdAndUpdate(req.params.id, pickWritableFields(req.body), { new: true });
     if (!doc) return res.status(404).json({ error: 'Project not found' });
     res.json({ project: serializeProject(doc) });
   } catch (err) {

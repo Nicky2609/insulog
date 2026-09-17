@@ -16,8 +16,22 @@ cloudinary.config({
 // saved to disk there would eventually disappear. The file is forwarded
 // straight to Cloudinary instead, where it persists independently of the
 // backend server's own lifecycle.
+// Only raster image types. SVG is deliberately excluded: it can embed
+// <script>/onload JS and would be stored/served back as if it were a plain
+// image, which is a stored-XSS vector.
+const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']);
+
+export function imageFileFilter(req, file, cb) {
+  const isAllowed = ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype);
+  cb(isAllowed ? null : new Error('Solo se permiten imagenes (png, jpg, webp, gif)'), isAllowed);
+}
+
 export function createUploader(limitsMb = 20) {
-  return multer({ storage: multer.memoryStorage(), limits: { fileSize: limitsMb * 1024 * 1024 } });
+  return multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: limitsMb * 1024 * 1024 },
+    fileFilter: imageFileFilter,
+  });
 }
 
 // Uploads a file buffer to Cloudinary under insulog/<subfolder>/ and
