@@ -1,167 +1,154 @@
 import { useState } from 'react';
+import apiClient from '../../lib/api';
 import PublicHeader from '../../components/layout/PublicHeader';
 import PublicFooter from '../../components/layout/PublicFooter';
-import apiClient from '../../lib/api';
+import {
+  AuthShell,
+  CampoTexto,
+  CampoSelect,
+  CampoTextarea,
+  BotonPrincipal,
+  MensajeError,
+  MensajeExito,
+} from '../../components/common/FormShell';
 
-const SERVICE_TYPES = ['Construccion', 'Suministros', 'Logistica', 'Otro'];
-
-const EMPTY_FORM = {
+const FORM_VACIO = {
   full_name: '',
+  company_name: '',
   email: '',
   phone: '',
-  company_name: '',
-  service_type: SERVICE_TYPES[0],
+  service_type: '',
   description: '',
 };
 
-export default function ContactForm() {
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
-  const [errorMessage, setErrorMessage] = useState('');
+/* Las opciones corresponden a las tres lineas del objeto social
+   registrado de la empresa. */
+const TIPOS_SERVICIO = [
+  { valor: '', texto: 'Seleccione una opcion' },
+  { valor: 'Construccion y obra civil', texto: 'Construccion y obra civil' },
+  { valor: 'Suministros', texto: 'Suministro de articulos y equipos' },
+  { valor: 'Logistica', texto: 'Apoyo logistico y transporte' },
+  { valor: 'Otro', texto: 'Otro / no estoy seguro' },
+];
 
-  function updateField(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+export default function ContactForm() {
+  const [form, setForm] = useState(FORM_VACIO);
+  const [status, setStatus] = useState('idle'); // idle | sending | sent
+  const [error, setError] = useState('');
+
+  function update(campo, valor) {
+    setForm((prev) => ({ ...prev, [campo]: valor }));
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+    setError('');
     setStatus('sending');
-    setErrorMessage('');
-
     try {
       await apiClient.post('/quotes/form', form);
       setStatus('sent');
-      setForm(EMPTY_FORM);
     } catch (err) {
-      setStatus('error');
-      setErrorMessage(err.response?.data?.error || 'No fue posible enviar el formulario. Intente de nuevo.');
+      setError(
+        err.response?.data?.error ||
+        'No fue posible enviar la solicitud. Intente de nuevo en unos minutos.'
+      );
+      setStatus('idle');
     }
   }
 
+  function nuevaSolicitud() {
+    setForm(FORM_VACIO);
+    setStatus('idle');
+    setError('');
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-steel-900">
       <PublicHeader />
 
-      <section className="max-w-2xl mx-auto px-6 py-16 w-full flex-1">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-signal mb-2">Formulario directo</p>
-        <h1 className="font-display text-3xl md:text-4xl text-steel-900 mb-3">Cuentenos que necesita</h1>
-        <p className="text-steel-600 mb-10">
-          Un asesor tecnico revisa su solicitud y lo contacta por telefono o correo en menos de un dia habil.
-        </p>
-
+      <AuthShell
+        ancho="lg"
+        eyebrow="Formulario directo"
+        titulo="Cuentenos que necesita"
+        descripcion="Describa su proyecto, el suministro que requiere o el apoyo logistico que necesita. Nuestro equipo tecnico revisara su solicitud y le respondera."
+      >
         {status === 'sent' ? (
-          <div className="border border-blueprint bg-blueprint-light rounded-xl p-6">
-            <p className="font-display text-xl text-steel-900 mb-2">Solicitud enviada</p>
-            <p className="text-steel-700 text-sm">
-              Gracias, ya recibimos su informacion. Nuestro equipo se pondra en contacto pronto.
+          <MensajeExito titulo="Solicitud enviada">
+            <p className="mb-6">
+              Recibimos su solicitud y nuestro equipo tecnico la revisara. Le responderemos al correo o
+              telefono que nos indico.
             </p>
-          </div>
+            <button
+              onClick={nuevaSolicitud}
+              className="text-sm font-semibold text-blueprint hover:underline"
+            >
+              Enviar otra solicitud
+            </button>
+          </MensajeExito>
         ) : (
-          <div className="panel-card p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid md:grid-cols-2 gap-5">
-                <Field label="Nombre completo" required>
-                  <input
-                    required
-                    type="text"
-                    value={form.full_name}
-                    onChange={(e) => updateField('full_name', e.target.value)}
-                    className="input"
-                  />
-                </Field>
-                <Field label="Empresa (opcional)">
-                  <input
-                    type="text"
-                    value={form.company_name}
-                    onChange={(e) => updateField('company_name', e.target.value)}
-                    className="input"
-                  />
-                </Field>
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid sm:grid-cols-2 gap-5">
+              <CampoTexto
+                label="Nombre completo"
+                value={form.full_name}
+                onChange={(v) => update('full_name', v)}
+                required
+              />
+              <CampoTexto
+                label="Empresa (opcional)"
+                value={form.company_name}
+                onChange={(v) => update('company_name', v)}
+              />
+            </div>
 
-              <div className="grid md:grid-cols-2 gap-5">
-                <Field label="Correo electronico" required>
-                  <input
-                    required
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => updateField('email', e.target.value)}
-                    className="input"
-                  />
-                </Field>
-                <Field label="Telefono" required>
-                  <input
-                    required
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
-                    className="input"
-                  />
-                </Field>
-              </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <CampoTexto
+                label="Correo electronico"
+                type="email"
+                value={form.email}
+                onChange={(v) => update('email', v)}
+                required
+              />
+              <CampoTexto
+                label="Telefono"
+                type="tel"
+                value={form.phone}
+                onChange={(v) => update('phone', v)}
+                required
+              />
+            </div>
 
-              <Field label="Tipo de servicio">
-                <select
-                  value={form.service_type}
-                  onChange={(e) => updateField('service_type', e.target.value)}
-                  className="input"
-                >
-                  {SERVICE_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+            <CampoSelect
+              label="Tipo de servicio"
+              value={form.service_type}
+              onChange={(v) => update('service_type', v)}
+              opciones={TIPOS_SERVICIO}
+            />
 
-              <Field label="Describa su proyecto" required>
-                <textarea
-                  required
-                  rows={5}
-                  value={form.description}
-                  onChange={(e) => updateField('description', e.target.value)}
-                  className="input resize-none"
-                  placeholder="Ubicacion, alcance, plazos estimados, materiales que necesita..."
-                />
-              </Field>
+            <CampoTextarea
+              label="Describa su proyecto"
+              value={form.description}
+              onChange={(v) => update('description', v)}
+              placeholder="Ubicacion, alcance, plazos estimados, materiales que necesita..."
+              required
+            />
 
-              {status === 'error' && <p className="text-sm text-signal-dark">{errorMessage}</p>}
+            <MensajeError texto={error} />
 
-              <button
-                type="submit"
-                disabled={status === 'sending'}
-                className="bg-signal text-white font-semibold px-6 py-3 rounded-lg hover:bg-signal-dark transition-colors disabled:opacity-60"
-              >
-                {status === 'sending' ? 'Enviando...' : 'Enviar solicitud'}
-              </button>
-            </form>
-          </div>
+            <div className="pt-1">
+              <BotonPrincipal loading={status === 'sending'} textoCargando="Enviando...">
+                Enviar solicitud
+              </BotonPrincipal>
+            </div>
+
+            <p className="text-xs text-steel-500 text-center pt-1">
+              Los campos marcados con <span className="text-signal">*</span> son obligatorios.
+            </p>
+          </form>
         )}
-      </section>
+      </AuthShell>
 
       <PublicFooter />
-
-      <style>{`
-        .input {
-          width: 100%;
-          border: 1px solid rgba(27,42,56,0.15);
-          border-radius: 0.5rem;
-          padding: 0.65rem 0.85rem;
-          background: white;
-          font-size: 0.9rem;
-        }
-      `}</style>
     </div>
-  );
-}
-
-function Field({ label, required, children }) {
-  return (
-    <label className="block">
-      <span className="text-xs font-semibold uppercase tracking-wide text-steel-700">
-        {label} {required && <span className="text-signal">*</span>}
-      </span>
-      <div className="mt-1.5">{children}</div>
-    </label>
   );
 }

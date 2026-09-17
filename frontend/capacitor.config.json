@@ -1,0 +1,13 @@
+{
+  "appId": "com.insulog.app",
+  "appName": "Insulog",
+  "webDir": "dist",
+  "server": {
+    "url": "https://insulog-pi.vercel.app",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
