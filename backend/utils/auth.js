@@ -16,8 +16,12 @@ export function serializeUser(doc) {
 }
 
 export function signToken(user) {
+  // Shorter-lived than before (was 30d): tokens are stored in localStorage
+  // with no revocation mechanism, so a stolen token stays valid until it
+  // expires. 7 days limits that exposure window without requiring a
+  // refresh-token flow.
   return jwt.sign({ sub: user._id.toString(), role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
+    expiresIn: '7d',
   });
 }
 

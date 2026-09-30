@@ -5,3 +5,16 @@ dist/
 *.log
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+# IDE config (can cache local paths/credentials)
+.idea/
+.vscode/
+
+# Android/Capacitor build artifacts (generated, may include debug manifests,
+# keystores, local SDK paths)
+frontend/android/**/build/
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/**/*.keystore
+frontend/android/**/*.jks
+frontend/android/captures/

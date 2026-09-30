@@ -4,14 +4,16 @@ import crypto from 'crypto';
 import User from '../models/User.js';
 import { serializeUser, signToken } from '../utils/auth.js';
 import { requireAuth } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rateLimit.js';
 import { sendPasswordResetEmail } from '../utils/mailer.js';
 
 const router = Router();
+const MIN_PASSWORD_LENGTH = 8;
 
 // POST /api/auth/login - PUBLIC. Staff accounts only (admin/engineer);
 // there is no self-registration since quoting no longer requires an
 // account, only the public quote form does.
-router.post('/login', async (req, res, next) => {
+router.post('/login', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -47,20 +49,31 @@ router.get('/me', requireAuth, async (req, res) => {
 // Always responds with the same generic message, whether or not the email
 // exists, so this endpoint can't be used to find out which emails have
 // an account (a common security precaution for this kind of form).
-router.post('/forgot-password', async (req, res, next) => {
+router.post('/forgot-password', authLimiter, async (req, res, next) => {
+  const startedAt = Date.now();
+  // Both branches (email exists / doesn't) are padded to the same minimum
+  // duration before responding, so response timing can't be used to
+  // enumerate which emails have an account.
+  const MIN_RESPONSE_MS = 400;
+  const respondGeneric = async () => {
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < MIN_RESPONSE_MS) {
+      await new Promise((resolve) => setTimeout(resolve, MIN_RESPONSE_MS - elapsed));
+    }
+    res.json({
+      message: 'Si el correo existe en nuestro sistema, se envio un enlace para restablecer la contraseña.',
+    });
+  };
+
   try {
     const { email } = req.body;
     if (!email) {
       return res.status(400).json({ error: 'Falta el correo' });
     }
 
-    const genericResponse = {
-      message: 'Si el correo existe en nuestro sistema, se envio un enlace para restablecer la contraseña.',
-    };
-
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user || !user.is_active) {
-      return res.json(genericResponse);
+      return respondGeneric();
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -77,7 +90,7 @@ router.post('/forgot-password', async (req, res, next) => {
       // the caller, to keep the same generic response either way.
     }
 
-    res.json(genericResponse);
+    return respondGeneric();
   } catch (err) {
     next(err);
   }
@@ -86,14 +99,14 @@ router.post('/forgot-password', async (req, res, next) => {
 // POST /api/auth/reset-password - PUBLIC. Takes the token from the emailed
 // link plus a new password, and also clears must_change_password: setting
 // a fresh password this way satisfies that requirement too.
-router.post('/reset-password', async (req, res, next) => {
+router.post('/reset-password', authLimiter, async (req, res, next) => {
   try {
     const { token, password } = req.body;
     if (!token || !password) {
       return res.status(400).json({ error: 'Falta el token o la contraseña' });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return res.status(400).json({ error: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres` });
     }
 
     const user = await User.findOne({ reset_token: token, reset_token_expires: { $gt: new Date() } });
@@ -119,8 +132,8 @@ router.post('/reset-password', async (req, res, next) => {
 router.post('/change-password', requireAuth, async (req, res, next) => {
   try {
     const { password } = req.body;
-    if (!password || password.length < 6) {
-      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    if (!password || password.length < MIN_PASSWORD_LENGTH) {
+      return res.status(400).json({ error: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres` });
     }
 
     const user = await User.findById(req.user.id);

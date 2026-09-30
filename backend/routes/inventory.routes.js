@@ -1,13 +1,46 @@
 import { Router } from 'express';
 import multer from 'multer';
+import mongoose from 'mongoose';
 import InventoryItem from '../models/InventoryItem.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { buildInventoryWorkbook, parseInventoryWorkbook } from '../utils/excel.js';
 import { createUploader, uploadToCloudinary } from '../utils/fileStorage.js';
 
 const router = Router();
-const uploadExcel = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const uploadExcel = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const isXlsx =
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.originalname.toLowerCase().endsWith('.xlsx');
+    cb(isXlsx ? null : new Error('Solo se permiten archivos .xlsx'), isXlsx);
+  },
+});
 const uploadImage = createUploader();
+
+// Fields a client is allowed to set on an inventory item. Anything else in
+// req.body (e.g. an attempt to set updated_by/created_at) is dropped.
+const WRITABLE_FIELDS = [
+  'code',
+  'name',
+  'category',
+  'unit',
+  'quantity',
+  'min_stock',
+  'unit_price',
+  'warehouse_location',
+  'project_id',
+  'notes',
+];
+
+function pickWritableFields(body) {
+  const payload = {};
+  for (const field of WRITABLE_FIELDS) {
+    if (body[field] !== undefined) payload[field] = body[field];
+  }
+  return payload;
+}
 
 // All inventory routes require an authenticated admin or engineer.
 router.use(requireAuth, requireRole('admin', 'engineer'));
@@ -49,7 +82,12 @@ router.get('/', async (req, res, next) => {
       const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       filter.$or = [{ name: regex }, { code: regex }];
     }
-    if (project_id) filter.project_id = project_id;
+    if (project_id) {
+      if (!mongoose.Types.ObjectId.isValid(project_id)) {
+        return res.status(400).json({ error: 'project_id invalido' });
+      }
+      filter.project_id = project_id;
+    }
 
     const docs = await InventoryItem.find(filter).sort({ name: 1 }).populate('project_id', 'name');
     res.json({ items: docs.map(serializeItem) });
@@ -61,8 +99,11 @@ router.get('/', async (req, res, next) => {
 // POST /api/inventory - create a single item
 router.post('/', async (req, res, next) => {
   try {
-    const payload = { ...req.body, updated_by: req.user.id };
+    const payload = { ...pickWritableFields(req.body), updated_by: req.user.id };
     if (!payload.project_id) payload.project_id = null;
+    else if (!mongoose.Types.ObjectId.isValid(payload.project_id)) {
+      return res.status(400).json({ error: 'project_id invalido' });
+    }
 
     const doc = await InventoryItem.create(payload);
     await doc.populate('project_id', 'name');
@@ -76,8 +117,11 @@ router.post('/', async (req, res, next) => {
 // PUT /api/inventory/:id - update a single item
 router.put('/:id', async (req, res, next) => {
   try {
-    const payload = { ...req.body, updated_by: req.user.id };
+    const payload = { ...pickWritableFields(req.body), updated_by: req.user.id };
     if (payload.project_id === '') payload.project_id = null;
+    else if (payload.project_id && !mongoose.Types.ObjectId.isValid(payload.project_id)) {
+      return res.status(400).json({ error: 'project_id invalido' });
+    }
 
     const doc = await InventoryItem.findByIdAndUpdate(req.params.id, payload, { new: true }).populate(
       'project_id',
