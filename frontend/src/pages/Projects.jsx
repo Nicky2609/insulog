@@ -61,7 +61,7 @@ export default function Projects() {
   }
 
   useEffect(() => {
-    loadProjects();
+    void loadProjects();
   }, []);
 
   async function handleSave(project, imageFile) {
@@ -84,7 +84,7 @@ export default function Projects() {
     }
 
     setModalProject(null);
-    loadProjects();
+    await loadProjects();
   }
 
   function askDelete(project) {
@@ -94,7 +94,7 @@ export default function Projects() {
   async function confirmDelete() {
     await apiClient.delete(`/projects/${projectToDelete.id}`);
     setProjectToDelete(null);
-    loadProjects();
+    await loadProjects();
   }
 
   // Métricas calculadas

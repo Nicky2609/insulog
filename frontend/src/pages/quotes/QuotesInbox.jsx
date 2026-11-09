@@ -47,7 +47,7 @@ export default function QuotesInbox() {
   }
 
   useEffect(() => {
-    loadRequests();
+    void loadRequests();
   }, []);
 
   async function updateStatus(id, status) {
@@ -58,7 +58,7 @@ export default function QuotesInbox() {
       );
     } catch (err) {
       console.error('Error actualizando estado:', err);
-      loadRequests();
+      await loadRequests();
     }
   }
 

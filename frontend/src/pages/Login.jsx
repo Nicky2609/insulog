@@ -212,7 +212,7 @@ function LoginCard({
         <form onSubmit={onSubmit} className="space-y-5">
           {/* Correo Corporativo */}
           <div className="space-y-1.5">
-            <label className="flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+            <label htmlFor="login-email" className="flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
               <span>Correo Corporativo Asignado</span>
               <span className="text-[10px] text-slate-400 font-normal lowercase">
                 @insulog.com.co
@@ -223,6 +223,7 @@ function LoginCard({
                 <UserIcon className="w-4 h-4" />
               </span>
               <input
+                id="login-email"
                 required
                 type="email"
                 autoComplete="username"
@@ -237,7 +238,7 @@ function LoginCard({
           {/* Contraseña */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+              <label htmlFor="login-password" className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
                 Contraseña Segura de Despacho
               </label>
               <Link
@@ -252,6 +253,7 @@ function LoginCard({
                 <LockIcon className="w-4 h-4" />
               </span>
               <input
+                id="login-password"
                 required
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"

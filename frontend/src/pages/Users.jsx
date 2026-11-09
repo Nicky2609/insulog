@@ -57,7 +57,7 @@ export default function Users() {
   }
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, []);
 
   /* ----- Handlers ----- */
@@ -70,7 +70,7 @@ export default function Users() {
       await apiClient.post('/users', form);
       setForm(EMPTY_FORM);
       setShowModal(false);
-      loadUsers();
+      await loadUsers();
     } catch (err) {
       setError(
         err.response?.data?.error ||
@@ -84,7 +84,7 @@ export default function Users() {
   async function handleRoleChange(id, role) {
     try {
       await apiClient.put(`/users/${id}/role`, { role });
-      loadUsers();
+      await loadUsers();
     } catch (err) {
       console.error('Error actualizando rol:', err);
     }
@@ -95,7 +95,7 @@ export default function Users() {
       await apiClient.put(`/users/${user.id}/status`, {
         is_active: !user.is_active,
       });
-      loadUsers();
+      await loadUsers();
     } catch (err) {
       console.error('Error actualizando estado:', err);
     }

@@ -57,13 +57,12 @@ export default function Inventory() {
   }
 
   useEffect(() => {
-    loadItems();
-    loadProjects();
+    void Promise.all([loadItems(), loadProjects()]);
   }, []);
 
-  function handleSearchSubmit(event) {
+  async function handleSearchSubmit(event) {
     event.preventDefault();
-    loadItems();
+    await loadItems();
   }
 
   async function handleSaveItem(item, imageFile) {
@@ -87,7 +86,7 @@ export default function Inventory() {
     }
 
     setModalItem(null);
-    loadItems();
+    await loadItems();
   }
 
   function askDelete(item) {
@@ -97,7 +96,7 @@ export default function Inventory() {
   async function confirmDelete() {
     await apiClient.delete(`/inventory/${itemToDelete.id}`);
     setItemToDelete(null);
-    loadItems();
+    await loadItems();
   }
 
   async function handleDownload() {
@@ -123,7 +122,7 @@ export default function Inventory() {
 
     setImportResult(data);
     event.target.value = '';
-    loadItems();
+    await loadItems();
   }
 
   const lowStockItems = items.filter((item) => Number(item.quantity) <= Number(item.min_stock));

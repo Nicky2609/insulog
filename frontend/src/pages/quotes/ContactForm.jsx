@@ -145,7 +145,7 @@ export default function ContactForm() {
     } catch (err) {
       setError(
         err.response?.data?.error ||
-          'No fue posible radicar la solicitud técnica. Por favor verifique los datos o contáctenos vía telefónica.'
+        'No fue posible radicar la solicitud técnica. Por favor verifique los datos o contáctenos vía telefónica.'
       );
       setStatus('idle');
     }
@@ -510,9 +510,8 @@ function SuccessPanel({ ticketId, form, onReset }) {
 function SummaryRow({ label, value, valueClass, last }) {
   return (
     <div
-      className={`flex justify-between ${
-        last ? 'pt-0.5' : 'border-b border-slate-200 pb-1.5'
-      }`}
+      className={`flex justify-between ${last ? 'pt-0.5' : 'border-b border-slate-200 pb-1.5'
+        }`}
     >
       <span className="text-slate-500">{label}</span>
       <span className={valueClass}>{value}</span>
@@ -547,15 +546,13 @@ function RadicationForm({ form, update, status, error, onSubmit }) {
 
 function ServiceSelector({ value, onChange }) {
   return (
-    <div className="space-y-3">
-      <label className="block">
-        <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center justify-between">
-          <span>1. Seleccione la Línea de Suministro o Servicio *</span>
-          <span className="text-[10px] text-slate-400 font-normal">
-            Obligatorio
-          </span>
+    <fieldset className="space-y-3 border-0 p-0 m-0">
+      <legend className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+        1. Seleccione la Línea de Suministro o Servicio *
+        <span className="ml-2 text-[10px] text-slate-400 font-normal normal-case">
+          Obligatorio
         </span>
-      </label>
+      </legend>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {SERVICIOS.map((srv) => (
@@ -567,7 +564,7 @@ function ServiceSelector({ value, onChange }) {
           />
         ))}
       </div>
-    </div>
+    </fieldset>
   );
 }
 
@@ -575,19 +572,21 @@ function ServiceCard({ service, selected, onSelect }) {
   const Icon = service.icon;
 
   return (
-    <div
+    <button
+      type="button"
+      aria-pressed={selected}
       onClick={onSelect}
-      className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-        selected
+      className={`w-full text-left p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${selected
           ? 'bg-orange-50/50 border-orange-600 shadow-xs'
           : 'bg-slate-50/60 border-slate-200/80 hover:border-slate-300 hover:bg-slate-50'
-      }`}
+        }`}
     >
       <div className="flex items-start justify-between">
         <span className="font-mono text-[9px] font-bold uppercase text-orange-600 tracking-wider">
           {service.code}
         </span>
         <Icon
+          aria-hidden="true"
           className={`w-4 h-4 ${selected ? 'text-orange-600' : 'text-slate-400'}`}
         />
       </div>
@@ -597,10 +596,9 @@ function ServiceCard({ service, selected, onSelect }) {
           {service.desc}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
-
 function ApplicantFields({ form, update }) {
   return (
     <div className="space-y-3 pt-2">

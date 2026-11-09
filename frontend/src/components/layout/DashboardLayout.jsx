@@ -37,12 +37,12 @@ export default function DashboardLayout() {
 
   const userInitials = profile?.full_name
     ? profile.full_name
-        .split(' ')
-        .filter(Boolean)
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase()
     : 'IN';
 
   // Cierra el drawer móvil al cambiar de ruta
@@ -78,8 +78,10 @@ export default function DashboardLayout() {
 
       {/* Backdrop oscuro para drawer móvil */}
       {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-40 transition-opacity"
+        <button
+          type="button"
+          aria-label="Cerrar menú lateral"
+          className="lg:hidden fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-40 transition-opacity border-0 p-0 cursor-pointer"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -158,21 +160,19 @@ export default function DashboardLayout() {
                   to={item.to}
                   end={item.to === '/panel'}
                   className={({ isActive }) =>
-                    `group relative flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-xs font-semibold tracking-wide transition-all duration-200 border ${
-                      isActive
-                        ? 'bg-orange-600 text-white border-orange-500 shadow-md shadow-orange-950/40'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/80 border-transparent hover:border-slate-800/80'
+                    `group relative flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-xs font-semibold tracking-wide transition-all duration-200 border ${isActive
+                      ? 'bg-orange-600 text-white border-orange-500 shadow-md shadow-orange-950/40'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/80 border-transparent hover:border-slate-800/80'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
                       <span
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
-                          isActive
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${isActive
                             ? 'bg-orange-700/60 text-white'
                             : 'bg-slate-900 text-slate-400 group-hover:text-slate-200 group-hover:bg-slate-800 border border-slate-800'
-                        }`}
+                          }`}
                       >
                         <Icon className="w-4 h-4" />
                       </span>
@@ -185,11 +185,10 @@ export default function DashboardLayout() {
                         </span>
                       ) : (
                         <span
-                          className={`font-mono text-[10px] transition-colors ${
-                            isActive ? 'text-orange-200 font-bold' : 'text-slate-600 group-hover:text-slate-400'
-                          }`}
+                          className={`font-mono text-[10px] transition-colors ${isActive ? 'text-orange-200 font-bold' : 'text-slate-600 group-hover:text-slate-400'
+                            }`}
                         >
-                          // {item.code}
+                          {/* // {item.code} */}
                         </span>
                       )}
                     </>

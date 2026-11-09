@@ -207,7 +207,7 @@ export default function PublicLanding() {
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex items-center justify-between pb-5">
                       <span className={`font-mono text-[11px] font-semibold ${textoAcento}`}>
-                        {div.numero} // {div.division}
+                        {div.numero} {'//'} {div.division}
                       </span>
                       <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-concrete-100 text-steel-700">
                         {div.etiqueta}

@@ -23,7 +23,9 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return;
     }
-    loadMe().finally(() => setLoading(false));
+    // loadMe handles request errors internally; void marks this effect's
+    // intentionally unawaited promise chain for the lint rule.
+    void loadMe().finally(() => setLoading(false));
   }, []);
 
   async function signIn(email, password) {
