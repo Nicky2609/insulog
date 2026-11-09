@@ -7,9 +7,12 @@ import { buildInventoryWorkbook, parseInventoryWorkbook } from '../utils/excel.j
 import { createUploader, uploadToCloudinary } from '../utils/fileStorage.js';
 
 const router = Router();
+const MAX_EXCEL_UPLOAD_BYTES = 2 * 1024 * 1024;
 const uploadExcel = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  // Keep memory use bounded for this in-memory upload, and accept only the
+  // one file this endpoint expects.
+  limits: { fileSize: MAX_EXCEL_UPLOAD_BYTES, files: 1, fields: 0, parts: 1 },
   fileFilter: (req, file, cb) => {
     const isXlsx =
       file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
@@ -78,6 +81,15 @@ router.get('/', async (req, res, next) => {
     const { search, project_id } = req.query;
     const filter = {};
 
+    // Query parameters can be arrays or objects (for example, with
+    // extended query-string syntax). Only accept primitive strings.
+    if (search !== undefined && typeof search !== 'string') {
+      return res.status(400).json({ error: 'search invalido' });
+    }
+    if (project_id !== undefined && typeof project_id !== 'string') {
+      return res.status(400).json({ error: 'project_id invalido' });
+    }
+
     if (search) {
       const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       filter.$or = [{ name: regex }, { code: regex }];
@@ -86,7 +98,9 @@ router.get('/', async (req, res, next) => {
       if (!mongoose.Types.ObjectId.isValid(project_id)) {
         return res.status(400).json({ error: 'project_id invalido' });
       }
-      filter.project_id = project_id;
+      // Convert the validated primitive to an ObjectId so no request value
+      // is passed directly into the MongoDB filter.
+      filter.project_id = new mongoose.Types.ObjectId(project_id);
     }
 
     const docs = await InventoryItem.find(filter).sort({ name: 1 }).populate('project_id', 'name');

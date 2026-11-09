@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import QuoteRequest from '../models/QuoteRequest.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { publicFormLimiter } from '../middleware/rateLimit.js';
@@ -54,7 +55,12 @@ router.use(requireAuth, requireRole('admin', 'engineer'));
 router.get('/form', async (req, res, next) => {
   try {
     const { status } = req.query;
-    const filter = status ? { status } : {};
+    if (status !== undefined && typeof status !== 'string') {
+      return res.status(400).json({ error: 'status invalido' });
+    }
+
+    // Only a primitive string from the query can become part of the filter.
+    const filter = status ? { status: String(status) } : {};
     const docs = await QuoteRequest.find(filter).sort({ created_at: -1 });
     res.json({ requests: docs.map(serialize) });
   } catch (err) {
@@ -67,10 +73,22 @@ router.put('/form/:id', async (req, res, next) => {
   try {
     // Whitelist: staff may only change status/assignment here, never the
     // submitter's own data (full_name, email, phone, description, ...).
-    const allowedFields = ['status', 'assigned_to'];
     const payload = {};
-    for (const field of allowedFields) {
-      if (req.body[field] !== undefined) payload[field] = req.body[field];
+    if (req.body.status !== undefined) {
+      if (typeof req.body.status !== 'string') {
+        return res.status(400).json({ error: 'status invalido' });
+      }
+      payload.status = req.body.status;
+    }
+    if (req.body.assigned_to !== undefined) {
+      const assignedTo = req.body.assigned_to;
+      if (assignedTo === null || assignedTo === '') {
+        payload.assigned_to = null;
+      } else if (typeof assignedTo === 'string' && mongoose.Types.ObjectId.isValid(assignedTo)) {
+        payload.assigned_to = new mongoose.Types.ObjectId(assignedTo);
+      } else {
+        return res.status(400).json({ error: 'assigned_to invalido' });
+      }
     }
 
     const doc = await QuoteRequest.findByIdAndUpdate(req.params.id, payload, { new: true });

@@ -9,6 +9,7 @@ import { sendPasswordResetEmail } from '../utils/mailer.js';
 
 const router = Router();
 const MIN_PASSWORD_LENGTH = 8;
+const RESET_TOKEN_PATTERN = /^[a-f0-9]{64}$/;
 
 // POST /api/auth/login - PUBLIC. Staff accounts only (admin/engineer);
 // there is no self-registration since quoting no longer requires an
@@ -16,7 +17,7 @@ const MIN_PASSWORD_LENGTH = 8;
 router.post('/login', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
       return res.status(400).json({ error: 'Missing email or password' });
     }
 
@@ -67,7 +68,7 @@ router.post('/forgot-password', authLimiter, async (req, res, next) => {
 
   try {
     const { email } = req.body;
-    if (!email) {
+    if (typeof email !== 'string' || !email) {
       return res.status(400).json({ error: 'Falta el correo' });
     }
 
@@ -102,7 +103,8 @@ router.post('/forgot-password', authLimiter, async (req, res, next) => {
 router.post('/reset-password', authLimiter, async (req, res, next) => {
   try {
     const { token, password } = req.body;
-    if (!token || !password) {
+    if (typeof token !== 'string' || !RESET_TOKEN_PATTERN.test(token) ||
+      typeof password !== 'string' || !password) {
       return res.status(400).json({ error: 'Falta el token o la contraseña' });
     }
     if (password.length < MIN_PASSWORD_LENGTH) {
@@ -132,7 +134,7 @@ router.post('/reset-password', authLimiter, async (req, res, next) => {
 router.post('/change-password', requireAuth, async (req, res, next) => {
   try {
     const { password } = req.body;
-    if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
       return res.status(400).json({ error: `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres` });
     }
 

@@ -20,16 +20,30 @@ cloudinary.config({
 // <script>/onload JS and would be stored/served back as if it were a plain
 // image, which is a stored-XSS vector.
 const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']);
+const MAX_IMAGE_UPLOAD_MB = 5;
+const MAX_MULTIPART_FIELDS = 10;
 
 export function imageFileFilter(req, file, cb) {
   const isAllowed = ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype);
   cb(isAllowed ? null : new Error('Solo se permiten imagenes (png, jpg, webp, gif)'), isAllowed);
 }
 
-export function createUploader(limitsMb = 20) {
+export function createUploader(limitsMb = MAX_IMAGE_UPLOAD_MB) {
+  // Reject unsafe or accidental overrides instead of allowing an unlimited
+  // or excessive memory allocation for memoryStorage uploads.
+  const requestedLimitMb = Number(limitsMb);
+  const safeLimitMb = Number.isFinite(requestedLimitMb) && requestedLimitMb > 0
+    ? Math.min(Math.floor(requestedLimitMb), MAX_IMAGE_UPLOAD_MB)
+    : MAX_IMAGE_UPLOAD_MB;
+
   return multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: limitsMb * 1024 * 1024 },
+    limits: {
+      fileSize: safeLimitMb * 1024 * 1024,
+      files: 1,
+      fields: MAX_MULTIPART_FIELDS,
+      parts: 1 + MAX_MULTIPART_FIELDS,
+    },
     fileFilter: imageFileFilter,
   });
 }
